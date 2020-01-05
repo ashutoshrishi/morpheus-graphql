@@ -39,6 +39,8 @@ import           Server.TH.Simple               ( thSimpleApi )
 import           Server.Sophisticated.API       ( EVENT
                                                 , gqlRoot
                                                 )
+import           Server.App.App                 (loby)
+
 
 main :: IO ()
 main = do
@@ -60,3 +62,5 @@ main = do
     get "/mythology" $ file "./examples/index.html"
     post "/th" $ raw =<< (liftIO . thSimpleApi =<< body)
     get "/th" $ file "./examples/index.html"
+    get "/lobby" $ file "./examples/index.html"
+    loby

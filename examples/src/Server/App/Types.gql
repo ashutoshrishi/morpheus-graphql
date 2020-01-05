@@ -1,0 +1,15 @@
+type UserJoined {
+	username : String!
+}
+
+type Subscription {
+  name: UserJoined
+}
+
+type Mutation {
+	name: UserJoined
+}
+
+type Query {
+	name: UserJoined
+}
