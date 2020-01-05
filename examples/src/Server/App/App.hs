@@ -45,8 +45,8 @@ newtype Content = Content { contentID :: Int }
 type USEREVENT = (Event Channel Content)
 
 ----- API ------
-lobbyApi :: ByteString -> IO ByteString
-lobbyApi= interpreter $ lobbyGqlRoot
+lobby :: ByteString -> IO ByteString
+lobby = interpreter $ lobbyGqlRoot
 
  
 lobbyGqlRoot :: GQLRootResolver IO USEREVENT Query Mutation Subscription
@@ -70,6 +70,3 @@ lobbyGqlRoot =
 --       UserJoined { userJoinedUsername =
 --                      return $ pack $ show $ contentID content
 --                  }
-
-loby :: ScottyM ()
-loby = post "/lobby" $ raw =<< (liftIO . lobbyApi =<< body)

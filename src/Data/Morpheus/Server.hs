@@ -10,6 +10,7 @@ module Data.Morpheus.Server
   , gqlSocketMonadIOApp
   , initGQLState
   , GQLState
+  , RootResCon
   )
 where
 
@@ -29,6 +30,7 @@ import           Network.WebSockets             ( ServerApp
 import           Data.Morpheus.Execution.Server.Resolve
                                                 ( RootResCon
                                                 , coreResolver
+                                                , RootResCon
                                                 )
 import           Data.Morpheus.Execution.Subscription.Apollo
                                                 ( SubAction(..)

@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE FlexibleContexts      #-}
 
 module Main
   ( main
@@ -11,11 +12,14 @@ where
 
 import           Control.Monad.IO.Class         ( liftIO )
 import           Data.Functor.Identity          ( Identity(..) )
+
+import           Data.Morpheus.Types            ( GQLRootResolver )
 import           Data.Morpheus                  ( Interpreter(..) )
 import           Data.Morpheus.Document         ( toGraphQLDocument )
 import           Data.Morpheus.Server           ( GQLState
                                                 , gqlSocketApp
                                                 , initGQLState
+                                                , RootResCon
                                                 )
 import qualified Network.Wai                   as Wai
 import qualified Network.Wai.Handler.Warp      as Warp
@@ -28,6 +32,8 @@ import           Web.Scotty                     ( body
                                                 , post
                                                 , raw
                                                 , scottyApp
+                                                , ScottyM
+                                                , RoutePattern
                                                 )
 
 -- examples
@@ -39,8 +45,20 @@ import           Server.TH.Simple               ( thSimpleApi )
 import           Server.Sophisticated.API       ( EVENT
                                                 , gqlRoot
                                                 )
-import           Server.App.App                 (loby)
+import           Server.App.App                 (lobby)
+import           Data.ByteString.Lazy           (ByteString)
 
+
+
+endpoint :: RoutePattern -> (ByteString -> IO ByteString)-> ScottyM ()
+endpoint path app = do
+  get  path $ file "./examples/index.html"
+  post path $ raw =<< (liftIO . app =<< body)
+
+endpointPubSub :: RootResCon IO e q m s => RoutePattern -> GQLState IO e -> GQLRootResolver IO e q m s -> ScottyM ()
+endpointPubSub path state rootRes = do 
+    get path $ file "./examples/index.html"
+    post path $ raw =<< (liftIO . interpreter rootRes state =<< body)
 
 main :: IO ()
 main = do
@@ -55,12 +73,8 @@ main = do
   wsApp    = gqlSocketApp gqlRoot
   httpServer :: GQLState IO EVENT -> IO Wai.Application
   httpServer state = scottyApp $ do
-    post "/" $ raw =<< (liftIO . interpreter gqlRoot state =<< body)
-    get "/" $ file "./examples/index.html"
     get "/schema.gql" $ raw $ toGraphQLDocument $ Identity gqlRoot
-    post "/mythology" $ raw =<< (liftIO . mythologyApi =<< body)
-    get "/mythology" $ file "./examples/index.html"
-    post "/th" $ raw =<< (liftIO . thSimpleApi =<< body)
-    get "/th" $ file "./examples/index.html"
-    get "/lobby" $ file "./examples/index.html"
-    loby
+    endpointPubSub "/" state gqlRoot
+    endpoint "/mythology" mythologyApi
+    endpoint "/th" thSimpleApi
+    endpoint "lobby" lobby
