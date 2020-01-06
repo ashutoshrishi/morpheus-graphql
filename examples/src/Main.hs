@@ -77,4 +77,4 @@ main = do
     endpointPubSub "/" state gqlRoot
     endpoint "/mythology" mythologyApi
     endpoint "/th" thSimpleApi
-    endpoint "lobby" lobby
+    endpoint "/lobby" lobby
